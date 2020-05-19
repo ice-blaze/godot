@@ -427,9 +427,6 @@ void TextEdit::_update_scrollbars() {
 		h_scroll->set_page(visible_width);
 		if (cursor.x_ofs > (total_width - visible_width))
 			cursor.x_ofs = (total_width - visible_width);
-		if (fabs(h_scroll->get_value() - (double)cursor.x_ofs) >= 1) {
-			h_scroll->set_value(cursor.x_ofs);
-		}
 
 	} else {
 
@@ -4281,7 +4278,6 @@ void TextEdit::_update_wrap_at() {
 }
 
 void TextEdit::adjust_viewport_to_cursor() {
-
 	// Make sure cursor is visible on the screen.
 	scrolling = false;
 	minimap_clicked = false;
@@ -4302,26 +4298,8 @@ void TextEdit::adjust_viewport_to_cursor() {
 		set_line_as_last_visible(cur_line, cur_wrap);
 	}
 
-	int visible_width = get_size().width - cache.style_normal->get_minimum_size().width - cache.line_number_w - cache.breakpoint_gutter_width - cache.fold_gutter_width - cache.info_gutter_width - cache.minimap_width;
-	if (v_scroll->is_visible_in_tree())
-		visible_width -= v_scroll->get_combined_minimum_size().width;
-	visible_width -= 20; // Give it a little more space.
-
-	if (!is_wrap_enabled()) {
-		// Adjust x offset.
-		int cursor_x = get_column_x_offset(cursor.column, text[cursor.line]);
-
-		if (cursor_x > (cursor.x_ofs + visible_width))
-			cursor.x_ofs = cursor_x - visible_width + 1;
-
-		if (cursor_x < cursor.x_ofs)
-			cursor.x_ofs = cursor_x;
-	} else {
-		cursor.x_ofs = 0;
-	}
-	h_scroll->set_value(cursor.x_ofs);
-
 	update();
+  _scroll_moved(-42);
 }
 
 void TextEdit::center_viewport_to_cursor() {
@@ -4363,7 +4341,6 @@ void TextEdit::update_cursor_wrap_offset() {
 	} else {
 		cursor.wrap_ofs = 0;
 	}
-	set_line_as_first_visible(cursor.line_ofs, cursor.wrap_ofs);
 }
 
 bool TextEdit::line_wraps(int line) const {
@@ -6339,8 +6316,6 @@ void TextEdit::set_line_as_last_visible(int p_line, int p_wrap_index) {
 
 	int wi;
 	int first_line = p_line - num_lines_from_rows(p_line, p_wrap_index, -get_visible_rows() - 1, wi) + 1;
-
-	set_v_scroll(get_scroll_pos_for_line(first_line, wi) + get_visible_rows_offset());
 }
 
 int TextEdit::get_first_visible_line() const {
